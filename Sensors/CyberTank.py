@@ -39,68 +39,95 @@ print("CyberTank Running")
 def updateDB():
     Lvl_TRIGGER = 20    #Level Tx Trigger
     Lvl_ECHO    = 21    #Level Tx Echo
-   # Set trigger to False (Low)
-    GPIO.output(Lvl_TRIGGER, False)
-    GPIO.output(26,True) #Heartbeat
-    # Allow module to settle
-    time.sleep(0.5)
-    # Send 10us pulse to trigger
-    GPIO.output(Lvl_TRIGGER, True)
-    # Wait 10us
-    time.sleep(0.00001)
-    GPIO.output(Lvl_TRIGGER, False)
-    start = time.time()
+    #get previous level
+    cursor.execute("SELECT level FROM tankLevel WHERE no = (SELECT MAX(no)  FROM tankLevel )")
+    value  = cursor.fetchall()
+    previousLevel = float(value[0][0])
     
-    while GPIO.input(Lvl_ECHO)==0:
-      start = time.time()
+    #setting variables
+    i=0              
+    Total=0
+    
+    # will take i number of readings and average on the fly
+    while i<5:
+   # Set trigger to False (Low)
+        GPIO.output(Lvl_TRIGGER, False)
+        GPIO.output(26,True) #Heartbeat
+    # Allow module to settle
+        time.sleep(0.5)
+    # Send 10us pulse to trigger
+        GPIO.output(Lvl_TRIGGER, True)
+    # Wait 10us
+        time.sleep(0.00001)
+        GPIO.output(Lvl_TRIGGER, False)
+        start = time.time()
+    
+        while GPIO.input(Lvl_ECHO)==0:
+          start = time.time()
               
-    while GPIO.input(Lvl_ECHO)==1:
-      stop = time.time()
+        while GPIO.input(Lvl_ECHO)==1:
+          stop = time.time()
       
-    GPIO.output(26,False) #Heartbeat  
+        GPIO.output(26,False) #Heartbeat  
     # Calculate pulse length
-    elapsed = stop-start
+        elapsed = stop-start
     
  # Distance pulse travelled in that time is time
     # multiplied by the speed of sound (m/s)
-    speedSound = 331.12
-    distance = elapsed * speedSound
+        speedSound = 331.12
+        distance = elapsed * speedSound
 
     # That was the distance there and back so halve the value
-    distance = distance / 2 
+        distance = distance / 2 
     #Tank Height in Meters
-    TH = 2.15
+        TH = 2.15
     #Probe Height above water 100% level in m
-    PH = 0.203
-    #Tank Volume in litres
-    TV = 2000
+        PH = 0.203
+ 
 
-    TankLvlM = TH-(distance - PH) #calculating tank level in metres
+        TankLvlM = TH-(distance - PH) #calculating tank level in metres
        
-    TnkLvl = TankLvlM/TH * 100 #calculating tank level in percent
-    if TnkLvl > 105:           #sets a max value of 105%
-        TnkLvl = 105
-    if TnkLvl < 0:             #sets a min value of 0%
-        TnkLvl = 0
- 
-    currentLevel = round(TnkLvl,1) #rounding to 1 decimal place
- 
-   #get previous level
-    cursor.execute("SELECT level FROM tankLevel WHERE no = (SELECT MAX(no)  FROM tankLevel )")
-    value  = cursor.fetchall()
-    previousLevel = int(value[0][0])
-    
-    DateStamp = datetime.datetime.now()
-    
-    var = currentLevel - previousLevel
+        TnkLvl = round((TankLvlM/TH * 100),1) #calculating tank level in percent
+        if TnkLvl > 105:           #sets a max value of 105%
+            TnkLvl = 105
+        if TnkLvl < 0:             #sets a min value of 0%
+           TnkLvl = 0
+        
+        #does a comparison of current level to previous level
+        LvlCmp = round ((TnkLvl - previousLevel),1) 
+        #this is so if a value is returned that is too great a change it limits that change
+        #this is to prevent excessive writing to database
+        #if comparison is greater than 2, limit tank level to previous level
+        if LvlCmp > 2:
+            print(str(i)+":"+"High: " + str(TnkLvl) +">"+str(previousLevel)) #print output for monitoring
+            TnkLvl = previousLevel 
+         
+        #if comparison is less than 2, limit tank level to previous level  
+        if LvlCmp < -2:
+            print(str(i)+":"+"Low: " + str(TnkLvl)  + "<" + str(previousLevel)) #print output for monitoring
+            TnkLvl = previousLevel
+            
+       
+        Total = round((Total + TnkLvl),1) #running total of tank level
+        AvgLvl = round((Total/(i+1)),1)   #on the fly averaging of tank level
+        currentLevel = round(TnkLvl,1) #rounding to 1 decimal place
+        if i==4:
+            print (":Total-"+str(Total)+":AvgLvl-"+str(AvgLvl)) #print output for monitoring
+        i+=1
+        
+    var = round((AvgLvl - previousLevel),3)
+    print ("Previous Level: " + str(previousLevel) + " : Variance:" + str(var))
         
     if (var > changeVar or var < (changeVar * -1)):
-        cursor.execute("INSERT INTO tankLevel(sensorID,level, datetime) values ("+str(sensorID)+ "," + str(currentLevel) + ", datetime('now','localtime'))")
+        cursor.execute("INSERT INTO tankLevel(sensorID,level, datetime) values ("+str(sensorID)+ "," + str(AvgLvl) + ", datetime('now','localtime'))")
         connection.commit()
         #only print when writing to DB
-        print(DateStamp)
-        print('currentLevel: ' + str(currentLevel) + '%')
+        DateStamp = datetime.datetime.now()
+        print(DateStamp) #print output for monitoring
+        print('Recording New Level: ' + str(AvgLvl) + '%') #print output for monitoring
         
+    print("") #just to add space between readings
+    
     
 def updateLights():
      #get current level 
