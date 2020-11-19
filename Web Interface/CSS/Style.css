@@ -53,6 +53,34 @@ td {
     text-align: center;
 }
 
+h2 {
+    margin-top: 15px;
+    font-family: 'Modak', cursive;
+    color: chartreuse;
+} 
+
+.imgedit {
+        margin-top: 15px;
+        background-size: 20px 30px;
+    
+}
+
+.dash-list {
+    text-align: left;   
+}
+
+.heading-ul {
+    font-size: large;
+    font-weight: bold;
+    color: whitesmoke;
+}
+
+.para {
+    font-size: medium;
+    color: white;
+}
+
+
 
 /* On small screens, set height to 'auto' for sidenav and grid */
 

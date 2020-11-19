@@ -28,9 +28,9 @@
                     <a href="index.html"><button class="btn" type="button">Dashboard</button></a>
                     <a href="Graphs.html"><button class="btn" type="button">Graphs</button></a>
                     <a href="Levels.html"><button class="btn active-page" type="button">Levels</button></a>
-                    <button class="btn" type="button">Automation</button>
-                    <button class="btn" type="button">Devices</button>
-                    <button class="btn" type="button">Network</button>
+                    <a href="Automation.html"><button class="btn"  type="button">Automation</button></a>
+                    <a href="Devices.html"><button class="btn" type="button">Devices</button></a>
+                    <a href="Network.html"><button class="btn" type="button">Network</button></a>
                 </form>
             </nav>
             <p id="output"></p>
@@ -41,8 +41,9 @@
             <!--<div id="demo" style="color: blanchedalmond;"></div> -->
             <table id="tableData" class="table table-fixed">
                 <tr>
-                    <th>ID</th>
-                    <th>Level</th>
+                    <th>No.</th>
+                    <th>Sensor ID</th>
+                    <th>Level %</th>
                     <th>Date</th>
                 </tr>
                 <thead>
@@ -52,6 +53,7 @@
                 <tbody class="tbody">
                 </tbody>
         </div>
+        <button class="btn active-page" style="margin-bottom: 10px;" onclick="exportTableToCSV('Levels.csv')">Export Data To CSV File</button>
     </div>
 
 

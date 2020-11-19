@@ -10,7 +10,7 @@ $(document).ready(() => {
 
             for (let i = 0; i < response.rows.length; i++) {
 
-                arrLabels[i] = response.rows[i].Date
+                arrLabels[i] = response.rows[i].dateTime
 
             }
 
@@ -18,7 +18,7 @@ $(document).ready(() => {
 
             for (let i = 0; i < response.rows.length; i++) {
 
-                arrData[i] = response.rows[i].Level
+                arrData[i] = response.rows[i].level
 
             }
 

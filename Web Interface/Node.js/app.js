@@ -2,13 +2,13 @@ const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 
 const app = express();
-const db = new sqlite3.Database('TEST.db');
+const db = new sqlite3.Database('/home/pi/CyberTank/CyberTankDB');
 
 app.get('/data', (req, res) => {
 
     res.setHeader('Access-Control-Allow-Origin', '*');
 
-    const sql = 'select * from Levels';
+    const sql = 'select * from tankLevel';
     const params = [];
 
     db.all(sql, params, (err, rows) => {
